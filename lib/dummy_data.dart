@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io' as IO;
 import 'package:file_picker/file_picker.dart';
+import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:universal_html/html.dart' as html;
@@ -286,21 +287,14 @@ class DummyDataStat {
     html.Url.revokeObjectUrl(url);
   }
 
-  void loadData() async {
+  void loadData(var stateM) async {
     //String csvS = await csv;
-
-    final filepath = await loadFile();
+    stateManager = stateM;
+    final filepath = await loadFileS();
     if (filepath == null) return;
-    IO.File f = IO.File(filepath);
-
-    final input = f.openRead();
-
-    final List<List<dynamic>> listData = await input
-        .transform(utf8.decoder).transform(const CsvToListConverter()).toList();
-
-
-      print(listData);
     
+    final List<List<dynamic>> listData = await CsvToListConverter().convert(filepath);
+    print(listData);
     for (var element in listData) {
       //final cells = <String, PlutoCell>{};
       var cells = <String, PlutoCell>{};
@@ -313,9 +307,18 @@ class DummyDataStat {
         'amt_field': PlutoCell(value: element[5]),
       };
       List<PlutoRow> rows = [PlutoRow(cells: cells)];
+      print('');
       stateManager!.appendRows(rows);
       //print(element[0].runtimeType);
     }
+  }
+
+  Future<String?> loadFileS() async {
+    FilePickerCross myFile = await FilePickerCross.importFromStorage(
+        type: FileTypeCross.custom,       // Available: `any`, `audio`, `image`, `video`, `custom`. Note: not available using FDE
+        fileExtension: 'csv'     // Only if FileTypeCross.custom . May be any file extension like `dot`, `ppt,pptx,odp`
+    );
+    return myFile.toString();
   }
 
   Future<String?> loadFile() async {

@@ -154,7 +154,7 @@ class _PlutoAdd extends State<PlutoAdd> {
                   ElevatedButton(
                     onPressed: () {
                       if (true) {
-                        dummyData.loadData();
+                        dummyData.loadData(stateManager);
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context)
                             .showSnackBar(const SnackBar(
