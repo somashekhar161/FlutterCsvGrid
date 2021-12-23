@@ -8,9 +8,8 @@ import 'add_accts.dart';
 import 'dummy_data.dart';
 import 'package:csv/csv.dart';
 /*import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:file_picker/file_picker.dart';*/
 
+import 'package:file_picker/file_picker.dart';*/
 
 class PlutoAdd extends StatefulWidget {
   DummyDataStat dummyData;
@@ -113,9 +112,9 @@ class _PlutoAdd extends State<PlutoAdd> {
                 width: size.maxWidth,
                 height: size.maxHeight,
                 constraints: BoxConstraints(
-                  minHeight: 250,
+                  //minHeight: 250,
                   maxWidth: gridWidth + 30,
-                  maxHeight: MediaQuery.of(context).size.height / 1.15,
+                  maxHeight: MediaQuery.of(context).size.height / 1.3,
                 ),
                 child: Column(
                   children: [
@@ -145,7 +144,7 @@ class _PlutoAdd extends State<PlutoAdd> {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      csv = dummyData.saveData(stateManager);
+                      csv = dummyData.saveData(stateManager,"fileCsv");
                     },
                     child: const Icon(Icons.file_download_done_outlined),
                   ),
@@ -153,19 +152,22 @@ class _PlutoAdd extends State<PlutoAdd> {
                     width: 20,
                   ),
                   ElevatedButton(
-                    onPressed: () async {
-                      if (csv!= null) {
-                        dummyData.loadData(csv);
+                    onPressed: () {
+                      if (true) {
+                        dummyData.loadData();
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
                           content: Text("Loaded"),
                         ));
-                      }else{
+                      } /*else {
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
                           content: Text("Null"),
                         ));
                       }
+                      */
                     },
                     child: const Icon(Icons.upload_file_outlined),
                   ),
@@ -208,50 +210,46 @@ class _PlutoAdd extends State<PlutoAdd> {
         }
       },
       child: Container(
-        padding:
-            const EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 40),
+        padding: const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 10),
         child: Column(
           children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Wrap(
-                spacing: 10,
-                children: [
-                  Tooltip(
-                    triggerMode: TooltipTriggerMode.tap,
-                    message: 'ctrl+M',
-                    child: ElevatedButton(
-                      child: const Text('Add a Row'),
-                      onPressed: () {
-                        int flag = handleAddRowButton();
-                        if (flag == 0) {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                            content: Text("Fill all the Values"),
-                          ));
-                        }
-                      },
-                    ),
+            Wrap(
+              spacing: 15,
+              children: [
+                Tooltip(
+                  triggerMode: TooltipTriggerMode.longPress,
+                  message: 'Add Row (ctrl+M)',
+                  child: ElevatedButton(
+                    child: const Icon(Icons.add),
+                    onPressed: () {
+                      int flag = handleAddRowButton();
+                      if (flag == 0) {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
+                          content: Text("Fill all the Values"),
+                        ));
+                      }
+                    },
                   ),
-                  Tooltip(
-                    triggerMode: TooltipTriggerMode.tap,
-                    message: 'ctrl+D',
-                    child: ElevatedButton(
-                      child: const Text('Remove Current Row'),
-                      onPressed: handleRemoveCurrentRowButton,
-                    ),
+                ),
+                Tooltip(
+                  triggerMode: TooltipTriggerMode.longPress,
+                  message: 'Remove Current Row (ctrl+D)',
+                  child: ElevatedButton(
+                    child: const Icon(Icons.delete),
+                    onPressed: handleRemoveCurrentRowButton,
                   ),
-                  Tooltip(
-                    triggerMode: TooltipTriggerMode.tap,
-                    message: 'ctrl+Q',
-                    child: ElevatedButton(
-                      child: const Text('Remove Selected Rows'),
-                      onPressed: handleRemoveSelectedRowsButton,
-                    ),
+                ),
+                Tooltip(
+                  triggerMode: TooltipTriggerMode.longPress,
+                  message: 'Remove Selected Rows(ctrl+Q)',
+                  child: ElevatedButton(
+                    child: const Text('Remove Selected Rows'),
+                    onPressed: handleRemoveSelectedRowsButton,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             const SizedBox(
               height: 10,

@@ -1,7 +1,16 @@
-import 'package:csv/csv.dart';
-import 'package:open_file/open_file.dart';
-import 'package:pluto_grid/pluto_grid.dart';
+import 'dart:convert';
+import 'dart:io' as IO;
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
+import 'package:universal_html/html.dart' as html;
+
+import 'dart:math';
+import 'package:csv/csv.dart';
+import 'dart:async';
+import 'package:pluto_grid/pluto_grid.dart';
+import 'package:external_path/external_path.dart';
+//import 'package:file_picker/file_picker.dart';
 
 class DummyDataStat {
   late List<PlutoColumn> columns;
@@ -191,12 +200,12 @@ class DummyDataStat {
       cells[column.field] = PlutoCell(
         value: (PlutoColumn element) {
           if (element.type.isNumber) {
-            return null; //faker.randomGenerator.decimal(scale: 1000000000);
+            return 0; //faker.randomGenerator.decimal(scale: 1000000000);
           } else if (element.type.isSelect) {
             //(element.type.select!.items!.toList()).first
             return "";
           } else if (element.type.isDate) {
-            return null;
+            return "";
           } else {
             return ""; //faker.food.restaurant();
           }
@@ -208,88 +217,132 @@ class DummyDataStat {
     return PlutoRow(cells: cells);
   }
 
-  Future<String> saveData(var stateM) async {
+  Future<String> saveData(var stateM, String filename) async {
+    if (filename.length < 1) {
+      filename = "Csvfile";
+    }
     stateManager = stateM;
     List<List<dynamic>> rows1 = List<List<dynamic>>.empty(growable: true);
     print('refreshedinState');
     stateManager?.rows.forEach((element) {
       List<dynamic> row1 = List.empty(growable: true);
-      element?.cells.values.map((e) => e).forEach((element) {
-        if (element.value != '' &&
-            element.value != 0 &&
-            element.value != null) {
-          print(element.value);
-          row1.add(element.value);
+      bool rFlag = true;
+      element!.cells.values.map((e) => e).forEach((element) {
+        if (element.value == "" || element.value == 0) {
+          rFlag = false;
         }
       });
+      if (rFlag) {
+        element.cells.values.map((e) => e).forEach((element) {
+          row1.add(element.value);
+        });
+      }
       if (row1.isNotEmpty) {
         rows1.add(row1);
         print(rows1);
       }
     });
     var csv = const ListToCsvConverter().convert(rows1);
-    List<String> header=[];
+    List<String> header = [];
     stateManager!.columns.forEach((element) {
-      print(element.title);
+      //print(element.title);
       header.add(element.title);
     });
     //print(header);
     String head = header.join(",");
-    print(head+'\n'+csv);
-    //print(csv);
+    //print(head+'\n'+csv);
+    print(csv);
+    if (kIsWeb) {
+      downloadWeb(csv);
+    } else if (IO.Platform.isAndroid || IO.Platform.isIOS) {
+      var dir = await ExternalPath.getExternalStoragePublicDirectory(
+          ExternalPath.DIRECTORY_DOWNLOADS);
+      print("dir $dir");
+      String file = "$dir";
 
+      IO.File f = IO.File(file + "/$filename.csv");
 
+      f.writeAsString(csv);
+    }
 
     return csv;
   }
 
-  void loadData(Future<String> csv) async {
-    String csvS = await csv;
+  void downloadWeb(String csv) {
+    final bytes = utf8.encode(csv);
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = 'csv_file.csv';
+    html.document.body?.children.add(anchor);
 
-      List<List<dynamic>> listData = CsvToListConverter().convert(csvS);
+// download
+    anchor.click();
+
+// cleanup
+    html.document.body?.children.remove(anchor);
+    html.Url.revokeObjectUrl(url);
+  }
+
+  void loadData() async {
+    //String csvS = await csv;
+
+    final filepath = await loadFile();
+    if (filepath == null) return;
+    IO.File f = IO.File(filepath);
+
+    final input = f.openRead();
+
+    final List<List<dynamic>> listData = await input
+        .transform(utf8.decoder).transform(const CsvToListConverter()).toList();
+
+
       print(listData);
-      listData.forEach((element) {
-        //final cells = <String, PlutoCell>{};
-        var cells = <String, PlutoCell>{};
-        cells = {
-          'date_field': PlutoCell(value: element[0]),
-          'de_field': PlutoCell(value: element[1]),
-          'ce_field': PlutoCell(value: element[2]),
-          'desc_field': PlutoCell(value: element[3]),
-          'vn_field': PlutoCell(value: element[4]),
-          'amt_field': PlutoCell(value: element[5]),
-        };
-        List<PlutoRow> rows = [PlutoRow(cells: cells)];
-        stateManager!.appendRows(rows);
-        //print(element[0].runtimeType);
-      });
-   final result = await FilePicker.platform.pickFiles();
-   if(result == null) return;
+    
+    for (var element in listData) {
+      //final cells = <String, PlutoCell>{};
+      var cells = <String, PlutoCell>{};
+      cells = {
+        'date_field': PlutoCell(value: element[0]),
+        'de_field': PlutoCell(value: element[1]),
+        'ce_field': PlutoCell(value: element[2]),
+        'desc_field': PlutoCell(value: element[3]),
+        'vn_field': PlutoCell(value: element[4]),
+        'amt_field': PlutoCell(value: element[5]),
+      };
+      List<PlutoRow> rows = [PlutoRow(cells: cells)];
+      stateManager!.appendRows(rows);
+      //print(element[0].runtimeType);
+    }
+  }
 
-   final file = result.files.first;
-   OpenFile.open(file.path!);
-    //  if (await Permission.storage.request().isGranted) {
-    //
-////store file in documents folder
-    //
-    //    String dir = (await getExternalStorageDirectory())!.path + "/mycsv.csv";
-    //    String file = "$dir";
-    //
-    //    File f = new File(file);
-    //
-//// convert rows to String and write as csv file
-    //    f.writeAsString(csv);
-    //  }else{
-    //
-    //    Map<Permission, PermissionStatus> statuses = await [
-    //      Permission.storage,
-    //    ].request();
-    //  }
+  Future<String?> loadFile() async {
+    List<PlatformFile>? paths;
+    String? _extension = "csv";
+    FileType _pickingType = FileType.custom;
 
-    /* final content = base64Encode(csv.codeUnits);
-    final url = 'data:application/csv;base64,$content';
-    await launch(url);
-
-    */
+    try {
+      paths = (await FilePicker.platform.pickFiles(
+        type: _pickingType,
+        allowMultiple: false,
+        allowedExtensions: (_extension.isNotEmpty)
+            ? _extension.replaceAll(' ', '').split(',')
+            : null,
+      ))
+          ?.files;
+    } on PlatformException catch (e) {
+      //print("Unsupported operation" + e.toString());
+    } catch (ex) {
+     // print(ex);
+    }
+    if (paths == null) {
+      return null;
+    } else {
+      print("File path ${paths[0]}");
+      print(paths.first.extension);
+      return paths[0].path.toString();
+    }
   }
 }
