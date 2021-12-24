@@ -36,7 +36,7 @@ class _PlutoAdd extends State<PlutoAdd> {
   Map<String, String>? acct;
 
   double gridWidth = 750.0;
-  var csv;
+
 
   @override
   void initState() {
@@ -142,34 +142,74 @@ class _PlutoAdd extends State<PlutoAdd> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      csv = dummyData.saveData(stateManager,"fileCsv");
-                    },
-                    child: const Icon(Icons.file_download_done_outlined),
+                  Tooltip(
+                    triggerMode: TooltipTriggerMode.longPress,
+                    message: "Save Sheet as CSV",
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        String path = await dummyData.saveData(stateManager);
+                        if(path.length<3) { path="Downloads";}
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar( SnackBar(
+                          content: Text("saved in this $path"),
+                        ));
+                      },
+                      child: const Icon(Icons.file_download_done_outlined),
+                    ),
                   ),
                   const SizedBox(
                     width: 20,
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (true) {
-                        dummyData.loadData(stateManager);
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                          content: Text("Loaded"),
-                        ));
-                      } /*else {
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                          content: Text("Null"),
-                        ));
-                      }
-                      */
-                    },
-                    child: const Icon(Icons.upload_file_outlined),
+                  Tooltip(
+                    triggerMode: TooltipTriggerMode.longPress,
+                    message: "Upload Sheet",
+                    child: ElevatedButton(
+                      onPressed: () {
+                        showDialog<String>(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: const Text('Upload CSV File'),
+                            content: const Text('How to load CSV File on Grid'),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, 'Cancel'),
+                                child: const Text('Cancel'),
+                              ),
+                              Tooltip(
+                                triggerMode: TooltipTriggerMode.longPress,
+                                message: "Uploaded on same sheet",
+                                child: TextButton(
+                                  onPressed: () async {
+                                      Navigator.pop(context, 'Same Sheet');
+                                      bool Newfile= false;
+                                      String path =  await dummyData.loadFileS(stateManager,Newfile);
+                                      dummyData.clear(path);
+                                  },
+                                  child: const Text('Same Sheet'),
+                                ),
+                              ),
+                              Tooltip(
+                                triggerMode: TooltipTriggerMode.longPress,
+                                message: "Previous Sheet will be deleted",
+                                child: TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context, 'New Sheet');
+                                    bool Newfile = true;
+                                    String path = await dummyData.loadFileS(stateManager,Newfile);
+                                    dummyData.clear(path);
+                                  },
+                                  child: const Text('New Sheet'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                      },
+                      child: const Icon(Icons.upload_file_rounded),
+                    ),
                   ),
                 ],
               ),
@@ -180,6 +220,7 @@ class _PlutoAdd extends State<PlutoAdd> {
     );
   }
 
+  //pluto Grid
   RawKeyboardListener gridExpandedBody() {
     return RawKeyboardListener(
       autofocus: true,
@@ -210,7 +251,8 @@ class _PlutoAdd extends State<PlutoAdd> {
         }
       },
       child: Container(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 10),
+        padding:
+            const EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 10),
         child: Column(
           children: [
             Wrap(

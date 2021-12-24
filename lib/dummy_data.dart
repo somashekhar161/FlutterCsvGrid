@@ -11,6 +11,7 @@ import 'package:csv/csv.dart';
 import 'dart:async';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:external_path/external_path.dart';
+import 'accounts.dart';
 //import 'package:file_picker/file_picker.dart';
 
 class DummyDataStat {
@@ -18,17 +19,8 @@ class DummyDataStat {
   List<PlutoRow>? rows;
   PlutoGridStateManager? stateManager;
   String date = "Date (DDMMYYYY)";
-  Map<String, String> acct = {
-    //accounts(key):groups(value)
-    'Purchase Local 12 %': 'Purchase',
-    'Purchase Interstate 12%': 'Expenses',
-    'Purchase Local 0%': 'Liabilities',
-    'Purchase Interstate 0%': 'Asset',
-    'Purchase (Composition)': 'Asset',
-    'Cash': 'Asset',
-    'Capital': 'Investment'
-  };
-  List<String>? groups = ['Purchase', 'Expenses', 'Liabilities', 'Asset'];
+  Map<String, String> acct = accounts().acct;
+  List<String>? groups = accounts().groups;
 
   List<PlutoColumn> columnData() {
     columns = [
@@ -69,7 +61,7 @@ class DummyDataStat {
         ),
         applyFormatterInEditing: false,
         formatter: (dynamic acts) {
-          String a = '';
+          String a = '(${acts.toString()})None';
           //String ac='(N)None';
           if (acct.keys.contains(acts.toString())) {
             acct.forEach((key, value) {
@@ -103,7 +95,7 @@ class DummyDataStat {
         ),
         applyFormatterInEditing: false,
         formatter: (dynamic acts) {
-          String a = '';
+          String a = '(${acts.toString()})None';
           //String ac='(N)None';
           if (acct.keys.contains(acts.toString())) {
             acct.forEach((key, value) {
@@ -187,6 +179,7 @@ class DummyDataStat {
       ),
     ];
   }
+
   List<PlutoRow> rowsByColumns(
       {required int length, List<PlutoColumn>? columns}) {
     return List<int>.generate(length, (index) => ++index).map((rowIndex) {
@@ -194,6 +187,8 @@ class DummyDataStat {
     }).toList();
   }
 
+
+  //adds and empty row
   PlutoRow rowByColumns(List<PlutoColumn> columns) {
     final cells = <String, PlutoCell>{};
 
@@ -218,21 +213,24 @@ class DummyDataStat {
     return PlutoRow(cells: cells);
   }
 
-  Future<String> saveData(var stateM, String filename) async {
-    if (filename.length < 1) {
-      filename = "Csvfile";
-    }
-    stateManager = stateM;
+//saves data to local Downloads
+  Future<String> saveData(var stateM) async {
+    //if (filename.length < 1) {
+    //  filename = "Csvfile";
+    //}
+
+    stateManager = stateM;//instance of stateManager
     List<List<dynamic>> rows1 = List<List<dynamic>>.empty(growable: true);
     print('refreshedinState');
     stateManager?.rows.forEach((element) {
       List<dynamic> row1 = List.empty(growable: true);
-      bool rFlag = true;
+      bool rFlag = true;//checks row is null
       element!.cells.values.map((e) => e).forEach((element) {
         if (element.value == "" || element.value == 0) {
           rFlag = false;
         }
       });
+      //adds row
       if (rFlag) {
         element.cells.values.map((e) => e).forEach((element) {
           row1.add(element.value);
@@ -259,14 +257,15 @@ class DummyDataStat {
       var dir = await ExternalPath.getExternalStoragePublicDirectory(
           ExternalPath.DIRECTORY_DOWNLOADS);
       print("dir $dir");
-      String file = "$dir";
+      //String file = "$dir";
 
-      IO.File f = IO.File(file + "/$filename.csv");
+      final IO.File? f = IO.File(dir + "/csv_file.csv");
 
-      f.writeAsString(csv);
+      await f?.writeAsString(csv);
+
+      return dir;
     }
-
-    return csv;
+    return '';
   }
 
   void downloadWeb(String csv) {
@@ -287,65 +286,62 @@ class DummyDataStat {
     html.Url.revokeObjectUrl(url);
   }
 
-  void loadData(var stateM) async {
+  void loadData(var stateM,var filetext) async {
     //String csvS = await csv;
     stateManager = stateM;
-    final filepath = await loadFileS();
-    if (filepath == null) return;
-    
-    final List<List<dynamic>> listData = await CsvToListConverter().convert(filepath);
+    String? filepath;
+    filepath = filetext;
+    if (filepath == null ||filepath == '') {
+      return;
+    } else{
+      final List<List<dynamic>> listData = await CsvToListConverter().convert(
+          filepath);
     print(listData);
-    for (var element in listData) {
-      //final cells = <String, PlutoCell>{};
-      var cells = <String, PlutoCell>{};
-      cells = {
-        'date_field': PlutoCell(value: element[0]),
-        'de_field': PlutoCell(value: element[1]),
-        'ce_field': PlutoCell(value: element[2]),
-        'desc_field': PlutoCell(value: element[3]),
-        'vn_field': PlutoCell(value: element[4]),
-        'amt_field': PlutoCell(value: element[5]),
-      };
-      List<PlutoRow> rows = [PlutoRow(cells: cells)];
-      print('');
-      stateManager!.appendRows(rows);
-      //print(element[0].runtimeType);
+    try {
+      for (var element in listData) {
+        //final cells = <String, PlutoCell>{};
+        var cells = <String, PlutoCell>{};
+        cells = {
+          'date_field': PlutoCell(value: element[0]),
+          'de_field': PlutoCell(value: element[1]),
+          'ce_field': PlutoCell(value: element[2]),
+          'desc_field': PlutoCell(value: element[3]),
+          'vn_field': PlutoCell(value: element[4]),
+          'amt_field': PlutoCell(value: element[5]),
+        };
+        List<PlutoRow> rows = [PlutoRow(cells: cells)];
+
+        stateManager!.appendRows(rows);
+        //print(element[0].runtimeType);
+      }
+    } catch (e) {
+      // print(e);
     }
   }
+  }
 
-  Future<String?> loadFileS() async {
-    FilePickerCross myFile = await FilePickerCross.importFromStorage(
+  Future<String?> loadFileS(var stateM,bool Newfile) async {
+    stateManager = stateM;
+     FilePickerCross myFile = await FilePickerCross.importFromStorage(
         type: FileTypeCross.custom,       // Available: `any`, `audio`, `image`, `video`, `custom`. Note: not available using FDE
         fileExtension: 'csv'     // Only if FileTypeCross.custom . May be any file extension like `dot`, `ppt,pptx,odp`
     );
-    return myFile.toString();
+    print('filepathis${myFile.path}');
+    print(myFile.toString());
+    if(myFile.toString()!=''){
+      if(Newfile){
+        stateManager?.removeRows(rows);
+      }
+    loadData(stateManager,myFile.toString());
+    }
+    return myFile.path;
+
   }
 
-  Future<String?> loadFile() async {
-    List<PlatformFile>? paths;
-    String? _extension = "csv";
-    FileType _pickingType = FileType.custom;
-
-    try {
-      paths = (await FilePicker.platform.pickFiles(
-        type: _pickingType,
-        allowMultiple: false,
-        allowedExtensions: (_extension.isNotEmpty)
-            ? _extension.replaceAll(' ', '').split(',')
-            : null,
-      ))
-          ?.files;
-    } on PlatformException catch (e) {
-      //print("Unsupported operation" + e.toString());
-    } catch (ex) {
-     // print(ex);
-    }
-    if (paths == null) {
-      return null;
-    } else {
-      print("File path ${paths[0]}");
-      print(paths.first.extension);
-      return paths[0].path.toString();
-    }
+  void clear(path)async{
+    await FilePickerCross.delete(
+        path: path);
   }
+
 }
+
