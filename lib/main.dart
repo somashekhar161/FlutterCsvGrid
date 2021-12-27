@@ -18,7 +18,15 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch:  Colors.deepPurple,
+        //primaryColor: Colors.deepPurple,
+        //primarySwatch: Colors.purple,
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          brightness: Brightness.dark,
+            primary: Colors.deepPurple,
+            primaryVariant: Colors.white,
+            //secondary: Colors.deepPurple,
+         // secondaryVariant: Colors.deepPurple,
+        ),
       ),
 
       home:  MyHomePage(dummyData: dummyData),
@@ -46,9 +54,12 @@ class _MyHomePageState extends State<MyHomePage> {
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             const SliverAppBar(
+
               title: Text('Pluto Grid'),
               pinned: false,
               floating: true,
+              backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
               //forceElevated: innerBoxIsScrolled,
             ),
           ];

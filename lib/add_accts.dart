@@ -32,6 +32,8 @@ class _add_accountsState extends State<add_accounts> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(

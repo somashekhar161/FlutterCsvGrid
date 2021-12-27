@@ -300,6 +300,7 @@ class _PlutoAdd extends State<PlutoAdd> {
               child: PlutoGrid(
                 columns: columns,
                 rows: rows,
+                configuration:  PlutoGridConfiguration.dark(),
                 onChanged: (P) {
                   autoFitGrid();
                   print(P);
