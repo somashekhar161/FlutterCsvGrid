@@ -51,7 +51,7 @@ class _add_accountsState extends State<add_accounts> {
       ),
       body: SingleChildScrollView(
         child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(128),
         child: Column(
           children: [
             Container(
@@ -60,10 +60,10 @@ class _add_accountsState extends State<add_accounts> {
               child: RichText(
 
                textAlign : TextAlign.left,
-                text: const TextSpan(
+                text:  TextSpan(
 
                   text: 'Enter Account Name Below',
-                  style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),
+                  style: Theme.of(context).textTheme.bodyText2,
 
                 ),
               ),
@@ -158,13 +158,16 @@ class _add_accountsState extends State<add_accounts> {
               child: RichText(
 
                 textAlign : TextAlign.left,
-                text: const TextSpan(
+                text: TextSpan(
 
                   text: 'Enter Group Name Below',
-                  style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),
+                  style: Theme.of(context).textTheme.bodyText2,
 
                 ),
               ),
+            ),
+            SizedBox(
+              height: 5,
             ),
             TextField(
               decoration: const InputDecoration(

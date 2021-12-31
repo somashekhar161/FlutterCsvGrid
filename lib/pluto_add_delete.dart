@@ -4,9 +4,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:universal_html/html.dart';
 import 'add_accts.dart';
 import 'dummy_data.dart';
 import 'package:csv/csv.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 /*import 'package:path_provider/path_provider.dart';
 
 import 'package:file_picker/file_picker.dart';*/
@@ -36,6 +38,9 @@ class _PlutoAdd extends State<PlutoAdd> {
   Map<String, String>? acct;
 
   double gridWidth = 750.0;
+
+  late AnimationController controller;
+
 
 
   @override
@@ -92,7 +97,25 @@ class _PlutoAdd extends State<PlutoAdd> {
   }
 
   void handleRemoveCurrentRowButton() {
+    int? id;
+    String? date;
+    String? de;
+    String? ce;
+    String? desc;
+    int? vn;
+    int? amt;
+    stateManager!.currentRow?.cells.forEach((key, value) {
+      if(key=="id_field") id=value.value;
+      if(key=="date_field") date=value.value;
+      if(key=="de_field") de=value.value;
+      if(key=="ce_field") ce=value.value;
+      if(key=="desc_field") desc=value.value;
+      if(key=="vn_field") vn=value.value;
+      if(key=="amt_field") amt=value.value;
+    });
     stateManager!.removeCurrentRow();
+
+    print("removed id = $id, date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
   }
 
   void handleRemoveSelectedRowsButton() {
@@ -148,10 +171,11 @@ class _PlutoAdd extends State<PlutoAdd> {
                     child: ElevatedButton(
                       onPressed: () async {
                         String path = await dummyData.saveData(stateManager);
-                        if(path.length<3) { path="Downloads";}
+                        if (path.length < 3) {
+                          path = "Downloads";
+                        }
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar( SnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text("saved in this $path"),
                         ));
                       },
@@ -182,10 +206,17 @@ class _PlutoAdd extends State<PlutoAdd> {
                                 message: "Uploaded on same sheet",
                                 child: TextButton(
                                   onPressed: () async {
-                                      Navigator.pop(context, 'Same Sheet');
-                                      bool Newfile= false;
-                                      String path =  await dummyData.loadFileS(stateManager,Newfile);
-                                      dummyData.clear(path);
+                                    Navigator.pop(context, 'Same Sheet');
+                                    bool Newfile = false;
+
+
+                                    String path = await dummyData.loadFileS(
+                                        stateManager, Newfile);
+                                    print(path);
+                                    dummyData.clear(path);
+
+                                    // print('$path');
+                                    //dummyData.clear(path);
                                   },
                                   child: const Text('Same Sheet'),
                                 ),
@@ -197,7 +228,8 @@ class _PlutoAdd extends State<PlutoAdd> {
                                   onPressed: () async {
                                     Navigator.pop(context, 'New Sheet');
                                     bool Newfile = true;
-                                    String path = await dummyData.loadFileS(stateManager,Newfile);
+                                    String path = await dummyData.loadFileS(
+                                        stateManager, Newfile);
                                     dummyData.clear(path);
                                   },
                                   child: const Text('New Sheet'),
@@ -206,7 +238,6 @@ class _PlutoAdd extends State<PlutoAdd> {
                             ],
                           ),
                         );
-
                       },
                       child: const Icon(Icons.upload_file_rounded),
                     ),
@@ -300,14 +331,31 @@ class _PlutoAdd extends State<PlutoAdd> {
               child: PlutoGrid(
                 columns: columns,
                 rows: rows,
-                configuration:  PlutoGridConfiguration.dark(),
+                //configuration: PlutoGridConfiguration.dark(),
                 onChanged: (P) {
                   autoFitGrid();
                   print(P);
+                  int? id;
+                  String? date;
+                  String? de;
+                  String? ce;
+                  String? desc;
+                  int? vn;
+                  int? amt;
+                  stateManager!.currentRow?.cells.forEach((key, value) {
+                    if(key=="id_field") id=value.value;
+                    if(key=="date_field") date=value.value;
+                    if(key=="de_field") de=value.value;
+                    if(key=="ce_field") ce=value.value;
+                    if(key=="desc_field") desc=value.value;
+                    if(key=="vn_field") vn=value.value;
+                    if(key=="amt_field") amt=value.value;
+                  });
+                  print("id = $id, date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
+
                   handleAddRowButton();
                   setState(() {
                     gridWidth = stateManager!.columnsWidth.toDouble();
-                    print(gridWidth.runtimeType);
                   });
 
                   //stateManager!.resetCurrentState();
@@ -319,7 +367,7 @@ class _PlutoAdd extends State<PlutoAdd> {
                   handleAddRowButton();
                   setState(() {
                     gridWidth = stateManager!.columnsWidth.toDouble();
-                    print(gridWidth.runtimeType);
+
                   });
                 },
               ),

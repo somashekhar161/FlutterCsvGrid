@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pluto_grid_v1/pluto_add_delete.dart';
-
+import 'package:loading_indicator/loading_indicator.dart';
 import 'dummy_data.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 
 void main() {
+  setPathUrlStrategy();///removes # in url
   runApp(MyApp());
 }
 
@@ -14,18 +16,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Grid',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         //primaryColor: Colors.deepPurple,
-        //primarySwatch: Colors.purple,
-        colorScheme: ColorScheme.fromSwatch().copyWith(
-          brightness: Brightness.dark,
-            primary: Colors.deepPurple,
-            primaryVariant: Colors.white,
-            //secondary: Colors.deepPurple,
-         // secondaryVariant: Colors.deepPurple,
+        primarySwatch: Colors.deepPurple,
+        brightness: Brightness.dark,
+        primaryTextTheme: TextTheme(
+          bodyText2: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.white ),
         ),
       ),
 
