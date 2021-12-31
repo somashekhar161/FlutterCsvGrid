@@ -22,14 +22,14 @@ class DummyDataStat extends ChangeNotifier {
   String date = "Date (DDMMYYYY)";
   Map<String, String> acct = accounts().acct;
   List<String>? groups = accounts().groups;
-  String id ='id';
+  String id = 'id';
 
   List<PlutoColumn> columnData() {
     columns = [
-     ///hidden column
+      ///hidden column
       PlutoColumn(
         title: id,
-        hide:true,
+        hide: true,
         minWidth: 0,
         field: 'id_field',
         enableColumnDrag: false,
@@ -43,6 +43,7 @@ class DummyDataStat extends ChangeNotifier {
         enableEditingMode: true,
         type: PlutoColumnType.number(),
       ),
+
       ///hidden
 
       /// Date Column definition
@@ -185,7 +186,6 @@ class DummyDataStat extends ChangeNotifier {
     ];
     return columns;
   }
-
 
   DummyDataStat() {
     /*columns = [
@@ -349,7 +349,7 @@ class DummyDataStat extends ChangeNotifier {
     rows = [
       PlutoRow(
         cells: {
-          'id_field' : PlutoCell(value: 1),
+          'id_field': PlutoCell(value: 1),
           'date_field': PlutoCell(value: '06082020'),
           'de_field': PlutoCell(value: 'Cash'),
           'ce_field': PlutoCell(value: 'Capital'),
@@ -393,28 +393,37 @@ class DummyDataStat extends ChangeNotifier {
     return PlutoRow(cells: cells);
   }
 
-
-//saves data to local Downloads
+  ///saves data to local Downloads
   Future<String> saveData(var stateM) async {
     //if (filename.length < 1) {
     //  filename = "Csvfile";
     //}
 
-    stateManager = stateM; //instance of stateManager
+    stateManager = stateM;
+
+    ///instance of stateManager
     List<List<dynamic>> rows1 = List<List<dynamic>>.empty(growable: true);
 
     stateManager?.rows.forEach((element) {
       List<dynamic> row1 = List.empty(growable: true);
-      bool rFlag = true; //checks row is null
+      bool rFlag = true;
+
+      ///checks row is null
       element!.cells.values.map((e) => e).forEach((element) {
-        if (element.value == "" || element.value == 0) {
+        if (element.value == "") {
           rFlag = false;
         }
       });
-      //adds row
+
+      element.cells.values.elementAt(0).value = 'Null';
+      //print(element.cells.values.elementAt(0).value);
+
+      ///adds row
       if (rFlag) {
         element.cells.values.map((e) => e).forEach((element) {
-          row1.add(element.value);
+          if (element.value != 'Null') {
+            row1.add(element.value);
+          }
         });
       }
       if (row1.isNotEmpty) {
@@ -482,11 +491,24 @@ class DummyDataStat extends ChangeNotifier {
           await CsvToListConverter().convert(filepath);
       //print(listData);
       try {
-        List<PlutoRow> rowsAll=[];
+        List<PlutoRow> rowsAll = [];
         for (var element in listData) {
           //final cells = <String, PlutoCell>{};
           var cells = <String, PlutoCell>{};
+          if (element[0].runtimeType != String) {
+            element[0].toString();
+          }
+          if (element[1].runtimeType != String) {
+            element[1].toString();
+          }
+          if (element[2].runtimeType != String) {
+            element[2].toString();
+          }
+          if (element[3].runtimeType != String) {
+            element[3].toString();
+          }
           cells = {
+            'id_field': PlutoCell(value: 0),
             'date_field': PlutoCell(value: element[0]),
             'de_field': PlutoCell(value: element[1]),
             'ce_field': PlutoCell(value: element[2]),
@@ -506,7 +528,6 @@ class DummyDataStat extends ChangeNotifier {
         // print(e);
         print("errorinAppend");
       }
-
     }
     return false;
   }
@@ -524,22 +545,17 @@ class DummyDataStat extends ChangeNotifier {
         stateManager?.removeRows(rows);
       }
       await loadData(stateManager, data);
-
     }
     stateManager?.setShowLoading(false);
     return myFile?.path;
   }
 
-  Future<FilePickerCross?> pickFile()async{
+  Future<FilePickerCross?> pickFile() async {
     FilePickerCross? myFile;
     try {
       myFile = await FilePickerCross.importFromStorage(
-          type: FileTypeCross.custom,
-          fileExtension:'csv,'
-      );
-
-    }
-    catch(e){
+          type: FileTypeCross.custom, fileExtension: 'csv,');
+    } catch (e) {
       print(e.runtimeType);
       print("error");
     }
@@ -548,12 +564,11 @@ class DummyDataStat extends ChangeNotifier {
   }
 
   void clear(path) async {
-
-    if(kIsWeb!=true) {
+    if (kIsWeb != true) {
       if (IO.Platform.isAndroid || IO.Platform.isIOS) {
         await FilePickerCross.delete(path: path);
       }
-    }else{
+    } else {
       print('web');
     }
   }

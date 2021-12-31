@@ -83,8 +83,9 @@ class _PlutoAdd extends State<PlutoAdd> {
           stateManager!.rows.last!.cells.values.elementAt(1).value != "" &&
           stateManager!.rows.last!.cells.values.elementAt(2).value != "" &&
           stateManager!.rows.last!.cells.values.elementAt(3).value != "" &&
-          stateManager!.rows.last!.cells.values.elementAt(4).value != 0 &&
-          stateManager!.rows.last!.cells.values.elementAt(5).value != 0) {
+          stateManager!.rows.last!.cells.values.elementAt(4).value != "" &&
+          stateManager!.rows.last!.cells.values.elementAt(5).value != 0 &&
+          stateManager!.rows.last!.cells.values.elementAt(6).value != 0) {
         final List<PlutoRow> rows = count == null
             ? [DummyDataStat().rowByColumns(columns!)]
             : DummyDataStat().rowsByColumns(length: count, columns: columns);
@@ -365,6 +366,8 @@ class _PlutoAdd extends State<PlutoAdd> {
                   stateManager!.setSelectingMode(gridSelectingMode!);
                   autoFitGrid();
                   handleAddRowButton();
+                  stateManager?.columns.clear();
+                  print("onload");
                   setState(() {
                     gridWidth = stateManager!.columnsWidth.toDouble();
 
