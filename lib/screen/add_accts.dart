@@ -1,16 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dummy_data.dart';
+import 'package:pluto_grid/pluto_grid.dart';
+import '../data/dummy_data.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'main.dart';
+import '../main.dart';
+import 'package:provider/provider.dart';
 
 class add_accounts extends StatefulWidget {
-  DummyDataStat dummyData;
-   add_accounts({Key? key,required this.dummyData}) : super(key: key);
+
+
+   add_accounts({Key? key}) : super(key: key);
 
   @override
-  _add_accountsState createState() => _add_accountsState(dummyData);
+  _add_accountsState createState() => _add_accountsState();
 }
 
 class _add_accountsState extends State<add_accounts> {
@@ -21,19 +24,22 @@ class _add_accountsState extends State<add_accounts> {
   Map<String, String>? acct;
   var dummyData;
   var isWeb = kIsWeb;
-  _add_accountsState(this.dummyData);
+
+
   var widthC;
 
   @override
   void initState() {
     super.initState();
-    groups = dummyData.groups;
-    acct = dummyData.acct;
+
     print('addAccountInit');
   }
 
   @override
   Widget build(BuildContext context) {
+    final providerData = Provider.of<DummyDataStat>(context);
+    groups = providerData.groups;
+    acct = providerData.acct;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.deepPurple,
@@ -48,13 +54,15 @@ class _add_accountsState extends State<add_accounts> {
                 onPressed: () {
                   Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => MyHomePage(dummyData: dummyData,)),
+                  MaterialPageRoute(builder: (context) => MyHomePage()),
                 );},
                // tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
               ),
             );
           },
         ),
+
+
         title: const Text('Add Accounts'),
       ),
       body: SingleChildScrollView(
@@ -128,7 +136,9 @@ class _add_accountsState extends State<add_accounts> {
                     if (acct?.keys.contains(_acctController.text.trim()) ==
                         false) {
                       print('notNull');
-                      acct![_acctController.text.trim()] = selectedGroup!;
+                      providerData.addAccount(_acctController.text.trim(),selectedGroup);
+                      //acct![_acctController.text.trim()] = selectedGroup!;
+
                       print(acct?.keys.toList());
                       ScaffoldMessenger.of(context).hideCurrentSnackBar();
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -201,7 +211,8 @@ class _add_accountsState extends State<add_accounts> {
                     if (groups?.contains(_groupSController.text.trim()) ==
                         false) {
                       print('notNull');
-                      groups?.add(_groupSController.text.trim());
+                      providerData.addGroup(_groupSController.text.trim());
+                      //groups?.add(_groupSController.text.trim());
                       ScaffoldMessenger.of(context).hideCurrentSnackBar();
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                         content: Text("Group Added"),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io' as IO;
+import 'dart:js';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -13,9 +14,10 @@ import 'dart:async';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:external_path/external_path.dart';
 import 'accounts.dart';
+import 'package:provider/provider.dart';
 //import 'package:file_picker/file_picker.dart';
 
-class DummyDataStat extends ChangeNotifier {
+class DummyDataStat with ChangeNotifier {
   late List<PlutoColumn> columns;
   List<PlutoRow>? rows;
   PlutoGridStateManager? stateManager;
@@ -23,6 +25,7 @@ class DummyDataStat extends ChangeNotifier {
   Map<String, String> acct = accounts().acct;
   List<String>? groups = accounts().groups;
   String id = 'id';
+  List<String> acctList = accounts().accountsList();
 
   List<PlutoColumn> columnData() {
     columns = [
@@ -188,7 +191,8 @@ class DummyDataStat extends ChangeNotifier {
   }
 
   DummyDataStat() {
-    /*columns = [
+/*
+    columns = [
      ///hidden column
       PlutoColumn(
         title: id,
@@ -240,7 +244,7 @@ class DummyDataStat extends ChangeNotifier {
         enableSetColumnsMenuItem: true,
         enableEditingMode: true,
         type: PlutoColumnType.select(
-          acct.keys.toList(),
+          acctList,
           enableColumnFilter: true,
         ),
         applyFormatterInEditing: false,
@@ -259,7 +263,9 @@ class DummyDataStat extends ChangeNotifier {
           }
           return a;
         },
+
       ),
+
       PlutoColumn(
         minWidth: 100.0,
         title: 'Ce.Account',
@@ -274,7 +280,7 @@ class DummyDataStat extends ChangeNotifier {
         enableSetColumnsMenuItem: true,
         enableEditingMode: true,
         type: PlutoColumnType.select(
-          acct.keys.toList(),
+          acctList,
           enableColumnFilter: true,
         ),
         applyFormatterInEditing: false,
@@ -345,7 +351,10 @@ class DummyDataStat extends ChangeNotifier {
         enableEditingMode: true,
         type: PlutoColumnType.number(),
       ),
-    ]; */
+
+    ];
+ */
+
     rows = [
       PlutoRow(
         cells: {
@@ -359,6 +368,7 @@ class DummyDataStat extends ChangeNotifier {
         },
       ),
     ];
+
   }
 
   List<PlutoRow> rowsByColumns(
@@ -391,6 +401,16 @@ class DummyDataStat extends ChangeNotifier {
 
     //rows!.add(PlutoRow(cells: cells));
     return PlutoRow(cells: cells);
+  }
+
+  void addAccount(acctName,selectedGroup){
+    acct[acctName] = selectedGroup!;
+    notifyListeners();
+  }
+
+  void addGroup(Group){
+    groups?.add(Group);
+    notifyListeners();
   }
 
   ///saves data to local Downloads

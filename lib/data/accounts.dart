@@ -204,4 +204,10 @@ class accounts {
     'Retained Earring',
     'Direct Incomes OR Income(Direct)'
   ];
+
+  List<String> accountsList(){
+    var list = acct.keys.toList();
+    return list;
+  }
+
 }

@@ -4,9 +4,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+
 import 'package:universal_html/html.dart';
 import 'add_accts.dart';
-import 'dummy_data.dart';
+import '../data/dummy_data.dart';
+import 'package:provider/provider.dart';
 import 'package:csv/csv.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 /*import 'package:path_provider/path_provider.dart';
@@ -14,17 +16,13 @@ import 'package:loading_indicator/loading_indicator.dart';
 import 'package:file_picker/file_picker.dart';*/
 
 class PlutoAdd extends StatefulWidget {
-  DummyDataStat dummyData;
-  PlutoAdd({Key? key, required this.dummyData}) : super(key: key);
+  PlutoAdd({Key? key}) : super(key: key);
 
   @override
-  _PlutoAdd createState() => _PlutoAdd(dummyData);
+  _PlutoAdd createState() => _PlutoAdd();
 }
 
 class _PlutoAdd extends State<PlutoAdd> {
-  var dummyData;
-  _PlutoAdd(this.dummyData);
-
   List<PlutoColumn>? columns;
 
   List<PlutoRow>? rows;
@@ -41,17 +39,13 @@ class _PlutoAdd extends State<PlutoAdd> {
 
   late AnimationController controller;
 
-
-
   @override
   void initState() {
-    acct = dummyData.acct;
-
     super.initState();
     print("restarted");
     setState(() {
-      columns = dummyData.columnData();
-      rows = dummyData.rows;
+      //columns = dummyData.columnData();
+      //rows = dummyData.rows;
     });
   }
 
@@ -59,7 +53,6 @@ class _PlutoAdd extends State<PlutoAdd> {
     for (var element in stateManager!.columns) {
       stateManager!.autoFitColumn(context, element);
     }
-    print(stateManager!.columnsWidth);
   }
 
   double reWidth() {
@@ -106,17 +99,18 @@ class _PlutoAdd extends State<PlutoAdd> {
     int? vn;
     int? amt;
     stateManager!.currentRow?.cells.forEach((key, value) {
-      if(key=="id_field") id=value.value;
-      if(key=="date_field") date=value.value;
-      if(key=="de_field") de=value.value;
-      if(key=="ce_field") ce=value.value;
-      if(key=="desc_field") desc=value.value;
-      if(key=="vn_field") vn=value.value;
-      if(key=="amt_field") amt=value.value;
+      if (key == "id_field") id = value.value;
+      if (key == "date_field") date = value.value;
+      if (key == "de_field") de = value.value;
+      if (key == "ce_field") ce = value.value;
+      if (key == "desc_field") desc = value.value;
+      if (key == "vn_field") vn = value.value;
+      if (key == "amt_field") amt = value.value;
     });
     stateManager!.removeCurrentRow();
 
-    print("removed id = $id, date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
+    print(
+        "removed id = $id, date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
   }
 
   void handleRemoveSelectedRowsButton() {
@@ -125,6 +119,9 @@ class _PlutoAdd extends State<PlutoAdd> {
 
   @override
   Widget build(BuildContext context) {
+    var providerData = Provider.of<DummyDataStat>(context);
+    columns = providerData.columnData();
+    rows = providerData.rows;
     return LayoutBuilder(
       builder: (context, size) {
         return SingleChildScrollView(
@@ -152,10 +149,7 @@ class _PlutoAdd extends State<PlutoAdd> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => add_accounts(
-                                dummyData: dummyData,
-                              )),
+                      MaterialPageRoute(builder: (context) => add_accounts()),
                     );
                   },
                   child: const Text('Add Account')),
@@ -171,7 +165,7 @@ class _PlutoAdd extends State<PlutoAdd> {
                     message: "Save Sheet as CSV",
                     child: ElevatedButton(
                       onPressed: () async {
-                        String path = await dummyData.saveData(stateManager);
+                        String path = await providerData.saveData(stateManager);
                         if (path.length < 3) {
                           path = "Downloads";
                         }
@@ -210,11 +204,10 @@ class _PlutoAdd extends State<PlutoAdd> {
                                     Navigator.pop(context, 'Same Sheet');
                                     bool Newfile = false;
 
-
-                                    String path = await dummyData.loadFileS(
+                                    String? path = await providerData.loadFileS(
                                         stateManager, Newfile);
                                     print(path);
-                                    dummyData.clear(path);
+                                    providerData.clear(path);
 
                                     // print('$path');
                                     //dummyData.clear(path);
@@ -229,9 +222,9 @@ class _PlutoAdd extends State<PlutoAdd> {
                                   onPressed: () async {
                                     Navigator.pop(context, 'New Sheet');
                                     bool Newfile = true;
-                                    String path = await dummyData.loadFileS(
+                                    String? path = await providerData.loadFileS(
                                         stateManager, Newfile);
-                                    dummyData.clear(path);
+                                    providerData.clear(path);
                                   },
                                   child: const Text('New Sheet'),
                                 ),
@@ -344,15 +337,16 @@ class _PlutoAdd extends State<PlutoAdd> {
                   int? vn;
                   int? amt;
                   stateManager!.currentRow?.cells.forEach((key, value) {
-                    if(key=="id_field") id=value.value;
-                    if(key=="date_field") date=value.value;
-                    if(key=="de_field") de=value.value;
-                    if(key=="ce_field") ce=value.value;
-                    if(key=="desc_field") desc=value.value;
-                    if(key=="vn_field") vn=value.value;
-                    if(key=="amt_field") amt=value.value;
+                    if (key == "id_field") id = value.value;
+                    if (key == "date_field") date = value.value;
+                    if (key == "de_field") de = value.value;
+                    if (key == "ce_field") ce = value.value;
+                    if (key == "desc_field") desc = value.value;
+                    if (key == "vn_field") vn = value.value;
+                    if (key == "amt_field") amt = value.value;
                   });
-                  print("id = $id, date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
+                  print(
+                      "id = $id, date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
 
                   handleAddRowButton();
                   setState(() {
@@ -370,7 +364,6 @@ class _PlutoAdd extends State<PlutoAdd> {
                   print("onload");
                   setState(() {
                     gridWidth = stateManager!.columnsWidth.toDouble();
-
                   });
                 },
               ),
