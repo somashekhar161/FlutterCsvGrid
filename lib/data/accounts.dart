@@ -1,5 +1,6 @@
 class accounts {
   Map<String, String> acct = {
+    ///accountName:GroupName
     'Purchase Local 12 %': 'Purchase Accounts',
     'Purchase Interstate 12%': 'Purchase Accounts',
     'Purchase Local 0%': 'Purchase Accounts',

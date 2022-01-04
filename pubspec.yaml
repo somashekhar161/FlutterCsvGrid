@@ -50,10 +50,7 @@ dependencies:
   provider: any
   loading_indicator: ^3.0.2
   url_strategy: ^0.2.0
-  
-
-
-
+  firebase_core: ^1.10.6
 
 dev_dependencies:
   flutter_test:

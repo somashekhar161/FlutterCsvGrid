@@ -495,9 +495,9 @@ class DummyDataStat with ChangeNotifier {
     html.document.body?.children.remove(anchor);
     html.Url.revokeObjectUrl(url);
   }
-//eof save Data
+///eof save Data
 
-//loadData from local
+///loadData from local
   Future<bool> loadData(var stateM, var filetext) async {
     //String csvS = await csv;
     stateManager = stateM;
@@ -592,5 +592,5 @@ class DummyDataStat with ChangeNotifier {
       print('web');
     }
   }
-//eof loadData from local
+///eof loadData from local
 }
