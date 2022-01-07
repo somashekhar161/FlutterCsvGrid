@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pluto_grid/pluto_grid.dart';
@@ -39,14 +41,23 @@ class _PlutoAdd extends State<PlutoAdd> {
 
   late AnimationController controller;
 
+  var providerData;
+
+  var Total;
+
   @override
   void initState() {
+
     super.initState();
     print("restarted");
+
+
     setState(() {
+
       //columns = dummyData.columnData();
       //rows = dummyData.rows;
     });
+
   }
 
   void autoFitGrid() {
@@ -76,22 +87,41 @@ class _PlutoAdd extends State<PlutoAdd> {
           stateManager!.rows.last!.cells.values.elementAt(1).value != "" &&
           stateManager!.rows.last!.cells.values.elementAt(2).value != "" &&
           stateManager!.rows.last!.cells.values.elementAt(3).value != "" &&
-          stateManager!.rows.last!.cells.values.elementAt(4).value != "" &&
-          stateManager!.rows.last!.cells.values.elementAt(5).value != 0 &&
-          stateManager!.rows.last!.cells.values.elementAt(6).value != 0) {
+          stateManager!.rows.last!.cells.values.elementAt(4).value != 0 &&
+          stateManager!.rows.last!.cells.values.elementAt(5).value != 0 ) {
         final List<PlutoRow> rows = count == null
             ? [DummyDataStat().rowByColumns(columns!)]
             : DummyDataStat().rowsByColumns(length: count, columns: columns);
 
         stateManager!.appendRows(rows);
+        setState(() {
+          Total = stateManager!.rows.length.toString();
+        });
         return 1;
       }
+      setState(() {
+        Total = stateManager!.rows.length.toString();
+      });
       return 0;
     }
+
   }
 
   void handleRemoveCurrentRowButton() {
-    int? id;
+    stateManager!.removeCurrentRow();
+    setState(() {
+      Total = stateManager!.rows.length.toString();
+    });
+  }
+
+  void handleRemoveSelectedRowsButton() {
+    stateManager!.removeRows(stateManager!.currentSelectingRows);
+    setState(() {
+      Total = stateManager!.rows.length.toString();
+    });
+  }
+
+  void printData(){
     String? date;
     String? de;
     String? ce;
@@ -99,7 +129,7 @@ class _PlutoAdd extends State<PlutoAdd> {
     int? vn;
     int? amt;
     stateManager!.currentRow?.cells.forEach((key, value) {
-      if (key == "id_field") id = value.value;
+
       if (key == "date_field") date = value.value;
       if (key == "de_field") de = value.value;
       if (key == "ce_field") ce = value.value;
@@ -107,27 +137,62 @@ class _PlutoAdd extends State<PlutoAdd> {
       if (key == "vn_field") vn = value.value;
       if (key == "amt_field") amt = value.value;
     });
-    stateManager!.removeCurrentRow();
-
     print(
-        "removed id = $id, date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
-  }
-
-  void handleRemoveSelectedRowsButton() {
-    stateManager!.removeRows(stateManager!.currentSelectingRows);
+        " date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
   }
 
   @override
   Widget build(BuildContext context) {
-    var providerData = Provider.of<DummyDataStat>(context);
+    providerData = Provider.of<DummyDataStat>(context);
     columns = providerData.columnData();
     rows = providerData.rows;
+    //providerData.loadFromFBase(stateManager,true);//loads data from firebase
+
     return LayoutBuilder(
       builder: (context, size) {
         return SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Tooltip(
+                      triggerMode: TooltipTriggerMode.longPress,
+                      message: "firebase Load Data",
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          providerData.loadFromFBase(stateManager,true);//loads data from firebase
+
+                        },
+                        child: const Text('firebase Load'),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Tooltip(
+                      triggerMode: TooltipTriggerMode.longPress,
+                      message: "firebase Update Data",
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          stateManager?.removeRows(rows);
+                          stateManager?.resetCurrentState();
+                          providerData.addUser(stateManager);//updates data in firebase
+
+
+
+                        },
+                        child: const Text('firebase Update'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               Container(
                 alignment: Alignment.center,
                 width: size.maxWidth,
@@ -146,7 +211,8 @@ class _PlutoAdd extends State<PlutoAdd> {
                 ),
               ),
               ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    //providerData.addUser(stateManager);//updates data in firebase
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => add_accounts()),
@@ -236,6 +302,8 @@ class _PlutoAdd extends State<PlutoAdd> {
                       child: const Icon(Icons.upload_file_rounded),
                     ),
                   ),
+
+                 // dataBuild(),
                 ],
               ),
             ],
@@ -244,9 +312,13 @@ class _PlutoAdd extends State<PlutoAdd> {
       },
     );
   }
+  //eof build
+
+
 
   //pluto Grid
   RawKeyboardListener gridExpandedBody() {
+
     return RawKeyboardListener(
       autofocus: true,
       focusNode: FocusNode(),
@@ -330,26 +402,9 @@ class _PlutoAdd extends State<PlutoAdd> {
                   autoFitGrid();
                   print(P);
                   int? id;
-                  String? date;
-                  String? de;
-                  String? ce;
-                  String? desc;
-                  int? vn;
-                  int? amt;
-                  stateManager!.currentRow?.cells.forEach((key, value) {
-                    if (key == "id_field") id = value.value;
-                    if (key == "date_field") date = value.value;
-                    if (key == "de_field") de = value.value;
-                    if (key == "ce_field") ce = value.value;
-                    if (key == "desc_field") desc = value.value;
-                    if (key == "vn_field") vn = value.value;
-                    if (key == "amt_field") amt = value.value;
-                  });
-                  print(
-                      "id = $id, date= $date, de= $de, ce= $ce, desc= $desc, vn= $vn, amt= $amt");
-
                   handleAddRowButton();
                   setState(() {
+                    Total = stateManager!.rows.length.toString();
                     gridWidth = stateManager!.columnsWidth.toDouble();
                   });
 
@@ -358,16 +413,34 @@ class _PlutoAdd extends State<PlutoAdd> {
                 onLoaded: (PlutoGridOnLoadedEvent event) {
                   stateManager = event.stateManager;
                   stateManager!.setSelectingMode(gridSelectingMode!);
+                 // stateManager?.removeRows(rows);
+                 // providerData.loadFromFBase(stateManager,true);//loads data from firebase
                   autoFitGrid();
-                  handleAddRowButton();
+                  //handleAddRowButton();
                   stateManager?.columns.clear();
                   print("onload");
                   setState(() {
+                    Total = stateManager!.rows.length.toString();
                     gridWidth = stateManager!.columnsWidth.toDouble();
                   });
                 },
               ),
             ),
+            Container(
+              alignment: Alignment.topLeft,
+              child: RichText(
+
+                text: TextSpan(
+                  text: 'Total ',
+                  style: DefaultTextStyle.of(context).style,
+                  children:  <TextSpan>[
+                    TextSpan(text: Total, style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: ' records'),
+                  ],
+                ),
+              ),
+            ),
+
           ],
         ),
       ),

@@ -4,10 +4,19 @@ import 'package:loading_indicator/loading_indicator.dart';
 import 'data/dummy_data.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'firebase_options.dart';
 
 
-void main() {
+
+Future main() async {
   setPathUrlStrategy();///removes # in url
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
@@ -69,6 +78,8 @@ class _MyHomePageState extends State<MyHomePage> {
           ];
         },
         body:PlutoAdd(),
+
+
 
       ),
 

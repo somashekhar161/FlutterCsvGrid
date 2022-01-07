@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io' as IO;
 import 'dart:js';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -30,7 +31,7 @@ class DummyDataStat with ChangeNotifier {
   List<PlutoColumn> columnData() {
     columns = [
       ///hidden column
-      PlutoColumn(
+      /*PlutoColumn(
         title: id,
         hide: true,
         minWidth: 0,
@@ -46,6 +47,8 @@ class DummyDataStat with ChangeNotifier {
         enableEditingMode: true,
         type: PlutoColumnType.number(),
       ),
+
+       */
 
       ///hidden
 
@@ -355,10 +358,9 @@ class DummyDataStat with ChangeNotifier {
     ];
  */
 
-    rows = [
+    /*rows = [
       PlutoRow(
         cells: {
-          'id_field': PlutoCell(value: 1),
           'date_field': PlutoCell(value: '06082020'),
           'de_field': PlutoCell(value: 'Cash'),
           'ce_field': PlutoCell(value: 'Capital'),
@@ -369,6 +371,7 @@ class DummyDataStat with ChangeNotifier {
       ),
     ];
 
+     */
   }
 
   List<PlutoRow> rowsByColumns(
@@ -403,12 +406,12 @@ class DummyDataStat with ChangeNotifier {
     return PlutoRow(cells: cells);
   }
 
-  void addAccount(acctName,selectedGroup){
+  void addAccount(acctName, selectedGroup) {
     acct[acctName] = selectedGroup!;
     notifyListeners();
   }
 
-  void addGroup(Group){
+  void addGroup(Group) {
     groups?.add(Group);
     notifyListeners();
   }
@@ -434,9 +437,6 @@ class DummyDataStat with ChangeNotifier {
           rFlag = false;
         }
       });
-
-      element.cells.values.elementAt(0).value = 'Null';
-      //print(element.cells.values.elementAt(0).value);
 
       ///adds row
       if (rFlag) {
@@ -495,9 +495,10 @@ class DummyDataStat with ChangeNotifier {
     html.document.body?.children.remove(anchor);
     html.Url.revokeObjectUrl(url);
   }
-///eof save Data
 
-///loadData from local
+  ///eof save Data
+
+  ///loadData from local
   Future<bool> loadData(var stateM, var filetext) async {
     //String csvS = await csv;
     stateManager = stateM;
@@ -528,7 +529,6 @@ class DummyDataStat with ChangeNotifier {
             element[3].toString();
           }
           cells = {
-            'id_field': PlutoCell(value: 0),
             'date_field': PlutoCell(value: element[0]),
             'de_field': PlutoCell(value: element[1]),
             'ce_field': PlutoCell(value: element[2]),
@@ -592,5 +592,123 @@ class DummyDataStat with ChangeNotifier {
       print('web');
     }
   }
-///eof loadData from local
+
+  ///eof loadData from local
+
+  ///load from firebase
+  void loadFromFBase(var stateM,bool fload) async {
+    bool floads = fload;
+    stateManager = stateM;
+    CollectionReference  _fData =  FirebaseFirestore.instance.collection('ledger');
+    /*var data = users.snapshots().map((snapshots) {
+      return snapshots.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    });
+
+     */
+    QuerySnapshot querySnapshot = await _fData.get();
+    var _allData = querySnapshot
+        .docs.map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
+
+    print(_allData.runtimeType);
+    _allData.forEach((element) {
+      print(element["Date"]);
+    });
+    if(floads){
+    loadEntry(stateManager, _allData);
+    }
+
+  }
+
+  void loadEntry(var stateM, var data) {
+    stateManager = stateM;
+    List<PlutoRow> fRowsAll = [];
+    data.forEach((element) {
+
+        var cells = <String, PlutoCell>{};
+        cells = {
+          'date_field': PlutoCell(value: element["Date"]),
+          'de_field': PlutoCell(value: element["De"]),
+          'ce_field': PlutoCell(value: element["Ce"]),
+          'desc_field': PlutoCell(value: element["Desc"]),
+          'vn_field': PlutoCell(value: element["Vn"]),
+          'amt_field': PlutoCell(value: element["Tamt"]),
+        };
+        PlutoRow rows = PlutoRow(cells: cells);
+        fRowsAll.add(rows);
+        // print(rowsAll.length);
+
+
+    });
+    stateManager!.appendRows(fRowsAll);
+  }
+
+  ///eof load from firebase
+
+  ///add Data to FireBase
+
+  Future<void> addUser(var stateM) async {
+    stateManager = stateM;
+    bool a = await deleteUser();
+    if(a) {
+      stateManager?.rows.forEach((element) {
+        bool fFlag = true;
+
+        ///checks row is null
+        element!.cells.values.map((e) => e).forEach((element) {
+          if (element.value == "") {
+            fFlag = false;
+          }
+        });
+        //print(element.cells.values.elementAt(0).value);
+        ///adds row
+        if (fFlag) {
+          addUsertoFirbse(
+            element.cells['date_field']?.value,
+            element.cells['de_field']?.value,
+            element.cells['ce_field']?.value,
+            element.cells['desc_field']?.value,
+            element.cells['vn_field']?.value,
+            element.cells['amt_field']?.value,
+          );
+        }
+      });
+    }
+  }
+
+  Future<void> addUsertoFirbse(
+      var pDate, var pDe, var pCe, var pDesc, var pVno, var pTamt) {
+    CollectionReference addusers = FirebaseFirestore.instance.collection('ledger');
+    var Date = pDate;
+    var De = pDe;
+    var Ce = pCe;
+    var Desc = pDesc;
+    var Vno = pVno;
+    var Tamt = pTamt;
+    // Call the user's CollectionReference to add a new user
+    return addusers.add({
+      'Date': Date,
+      'De': De,
+      'Ce': Ce,
+      'Desc': Desc,
+      'Vn': Vno,
+      'Tamt': Tamt
+    });
+  }
+
+  ///eof add Data to FireBase
+
+  ///delete Data in FireBase
+  Future<bool> deleteUser() async {
+    var collection = FirebaseFirestore.instance.collection('ledger');
+    var snapshots = await collection.get();
+    for (var doc in snapshots.docs) {
+      await doc.reference.delete();
+    }
+    return true;
+  }
+
+  ///eof delete Data in FireBase
 }
